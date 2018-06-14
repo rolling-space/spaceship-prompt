@@ -19,13 +19,17 @@ SPACESHIP_RUBY_COLOR="${SPACESHIP_RUBY_COLOR="red"}"
 # ------------------------------------------------------------------------------
 
 # Show current version of Ruby
-spaceship_ruby() {
+spaceship_async_job_load_ruby() {
   [[ $SPACESHIP_RUBY_SHOW == false ]] && return
 
   # Show versions only for Ruby-specific folders
   [[ -f Gemfile || -f Rakefile || -n *.rb(#qN^/) ]] || return
 
-  local 'ruby_version'
+  async_job spaceship spaceship_async_job_ruby
+}
+
+spaceship_async_job_ruby() {
+  local ruby_version
 
   if spaceship::exists rvm-prompt; then
     ruby_version=$(rvm-prompt i v g)
@@ -34,8 +38,7 @@ spaceship_ruby() {
   elif spaceship::exists rbenv; then
     ruby_version=$(rbenv version-name)
   elif spaceship::exists asdf; then
-    # split output on space and return first element
-    ruby_version=${$(asdf current ruby)[1]}
+    ruby_version=$(asdf current ruby | awk '{print $1}')
   else
     return
   fi
@@ -45,9 +48,15 @@ spaceship_ruby() {
   # Add 'v' before ruby version that starts with a number
   [[ "${ruby_version}" =~ ^[0-9].+$ ]] && ruby_version="v${ruby_version}"
 
+  echo $ruby_version
+}
+
+spaceship_ruby() {
+  [[ -z "${SPACESHIP_ASYNC_RESULTS[spaceship_async_job_ruby]}" ]] && return
+
   spaceship::section \
     "$SPACESHIP_RUBY_COLOR" \
     "$SPACESHIP_RUBY_PREFIX" \
-    "${SPACESHIP_RUBY_SYMBOL}${ruby_version}" \
+    "${SPACESHIP_RUBY_SYMBOL}${SPACESHIP_ASYNC_RESULTS[spaceship_async_job_ruby]}" \
     "$SPACESHIP_RUBY_SUFFIX"
 }
