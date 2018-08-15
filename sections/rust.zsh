@@ -22,12 +22,10 @@ SPACESHIP_RUST_COLOR="${SPACESHIP_RUST_COLOR="red"}"
 spaceship_async_job_load_rust() {
   [[ $SPACESHIP_RUST_SHOW == false ]] && return
 
-    async_job spaceship spaceship_async_job_rust $PWD
+    async_job spaceship spaceship_async_job_rust
 }
 
 spaceship_async_job_rust() {
-  builtin cd -q $1 2>/dev/null
-
   # If there are Rust-specific files in current directory
   setopt extendedglob
   [[ -f Cargo.toml || -n *.rs(#qN^/) ]] || return
